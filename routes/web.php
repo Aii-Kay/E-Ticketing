@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\User\BookingController as UserBookingController;
+use App\Http\Controllers\Admin\BookingController as AdminBookingController;
+use App\Http\Controllers\Organizer\BookingController as OrganizerBookingController;
 
 
 // route default, bebas
@@ -97,7 +100,7 @@ Route::middleware(['auth', 'role.organizer'])
             ->name('events.destroy');
     });
 
-    Route::middleware(['auth', 'role.admin'])
+Route::middleware(['auth', 'role.admin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
@@ -122,4 +125,68 @@ Route::middleware(['auth', 'role.organizer'])
 
         Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
             ->name('categories.destroy');
+    });
+Route::middleware(['auth', 'role.user'])
+    ->prefix('user')
+    ->name('user.')
+    ->group(function () {
+
+        Route::get('/', function () {
+            return 'User dashboard';
+        })->name('dashboard');
+
+        Route::prefix('bookings')
+            ->name('bookings.')
+            ->group(function () {
+                Route::get('/', [UserBookingController::class, 'index'])
+                    ->name('index');   // GET /user/bookings
+                Route::post('/', [UserBookingController::class, 'store'])
+                    ->name('store');   // POST /user/bookings
+                Route::get('/{booking}', [UserBookingController::class, 'show'])
+                    ->name('show');    // GET /user/bookings/{booking}
+                Route::post('/{booking}/cancel', [UserBookingController::class, 'cancel'])
+                    ->name('cancel');  // POST /user/bookings/{booking}/cancel
+            });
+    });
+
+Route::middleware(['auth', 'role.admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+
+        // ... route admin lain (dashboard, users, events, categories, dll)
+
+        Route::prefix('bookings')
+            ->name('bookings.')
+            ->group(function () {
+                Route::get('/', [AdminBookingController::class, 'index'])
+                    ->name('index');   // GET /admin/bookings
+                Route::get('/{booking}', [AdminBookingController::class, 'show'])
+                    ->name('show');    // GET /admin/bookings/{booking}
+                Route::post('/{booking}/approve', [AdminBookingController::class, 'approve'])
+                    ->name('approve'); // POST /admin/bookings/{booking}/approve
+                Route::post('/{booking}/cancel', [AdminBookingController::class, 'cancel'])
+                    ->name('cancel');  // POST /admin/bookings/{booking}/cancel
+            });
+    });
+
+Route::middleware(['auth', 'role.organizer'])
+    ->prefix('organizer')
+    ->name('organizer.')
+    ->group(function () {
+
+        // ... route organizer lain (dashboard, events, dll)
+
+        Route::prefix('bookings')
+            ->name('bookings.')
+            ->group(function () {
+                Route::get('/', [OrganizerBookingController::class, 'index'])
+                    ->name('index');   // GET /organizer/bookings
+                Route::get('/{booking}', [OrganizerBookingController::class, 'show'])
+                    ->name('show');    // GET /organizer/bookings/{booking}
+                Route::post('/{booking}/approve', [OrganizerBookingController::class, 'approve'])
+                    ->name('approve'); // POST /organizer/bookings/{booking}/approve
+                Route::post('/{booking}/cancel', [OrganizerBookingController::class, 'cancel'])
+                    ->name('cancel');  // POST /organizer/bookings/{booking}/cancel
+            });
     });
