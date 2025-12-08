@@ -1,62 +1,198 @@
-HEAD
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# EventTicket – Laravel Multi-Role E-Ticketing Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+EventTicket adalah aplikasi web e-ticketing berbasis **Laravel** dengan dukungan multi-role:
 
-## About Laravel
+- **Admin**
+- **Event Organizer**
+- **Registered User**
+- **Guest**
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Proyek ini fokus pada:
+- Manajemen event & tiket,
+- Manajemen booking & e-ticket PDF,
+- Approval organizer & booking,
+- Dashboard analytics interaktif,
+- UI modern, elegan, dan responsif.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 1. Tech Stack
 
-## Learning Laravel
+### Backend
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+- **PHP** 8.2+
+- **Laravel** 10/11 (dalam log error muncul 12.x, tapi struktur kompatibel 10/11)
+- **MySQL** (atau kompatibel, misal MariaDB)
+- **Laravel Breeze** (auth + scaffolding dasar)
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Frontend
 
-## Laravel Sponsors
+- **Vite** (asset bundler)
+- **Tailwind CSS**
+- **DaisyUI** (Tailwind component plugin)
+- **Flowbite** (komponen UI tambahan)
+- **Tailwind Typography**
+- **Animate.css**
+- **Animista** (via CDN – untuk animasi khusus)
+- **Alpine.js** (interaksi ringan)
+- **AOS.js** (scroll animation)
+- **Swiper.js** (slider/hero carousel – opsional per halaman)
+- **Chart.js** (analytics dashboard)
+- **Flatpickr** (date picker)
+- **SweetAlert2** (alert & konfirmasi modern)
+- **Day.js** (format tanggal di frontend)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+---
 
-### Premium Partners
+## 2. Fitur Utama
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 2.1. Role & Akses
 
-## Contributing
+#### 1) Guest (tanpa login)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- Melihat **landing page / homepage** yang modern (welcome page).
+- Melihat **daftar event** (card grid).
+- Menggunakan **search & filter**:
+  - Kata kunci (nama event),
+  - Lokasi,
+  - Tanggal mulai,
+  - Kategori (drop-down dari kategori yang tersedia).
+- Melihat detail event penting di card (gambar, judul, tanggal, lokasi, harga ringkas).
+- Jika klik **Book Ticket**, diarahkan ke halaman **login / register** karena booking hanya boleh untuk user yang sudah login.
 
-## Code of Conduct
+#### 2) Registered User (`role = registered_user`)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **User Dashboard**
+  - Menampilkan **daftar event** yang tersedia (tanpa harus search dulu).
+  - Search & filter event (keyword, lokasi, tanggal mulai, kategori).
+  - Card event dengan:
+    - Gambar besar event (image),
+    - Nama event, tanggal, waktu, lokasi,
+    - Kategori,
+    - Deskripsi singkat.
+  - Aksi pada event:
+    - **Lihat & Booking** → masuk ke flow booking event tersebut.
+    - **Tambah ke Favorite** → masuk ke daftar favorit user.
+- **Booking**
+  - Membuat booking baru untuk sebuah event (pilih ticket type & quantity).
+  - Status awal booking: `pending`.
+  - Melihat **riwayat booking**:
+    - Tabel/daftar booking: event, ticket type, quantity, status, tanggal.
+    - **Download E-Ticket (PDF)** jika status `approved`.
+    - **Cancel booking** (mengubah status & mengembalikan kuota jika sebelumnya `approved`).
+- **Favorite**
+  - Menambah event ke **favorite (wishlist)**.
+  - Melihat halaman **Favorite Events**:
+    - Card event favorit dengan gambar, informasi event, dan tombol **hapus dari favorit**.
+- **Notifikasi**
+  - Melihat daftar notifikasi yang diterima:
+    - Misalnya: booking disetujui, booking dibatalkan, dll.
+  - Menandai notifikasi sebagai **read**.
 
-## Security Vulnerabilities
+#### 3) Event Organizer (`role = organizer`)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+> Organizer harus melalui flow **approval** oleh admin.
 
-## License
+- **Dashboard Organizer**
+  - Ringkasan event milik organizer (total event, tiket terjual, sisa kuota, total revenue).
+  - Grafik penjualan per bulan (Chart.js).
+- **Manajemen Event (hanya event miliknya)**
+  - Membuat event baru.
+  - Mengedit / menghapus event miliknya.
+  - Mengupload gambar event.
+  - Mengelola **ticket types** untuk masing-masing event (quota, harga, dsb).
+- **Manajemen Booking (untuk event miliknya)**
+  - Melihat booking yang masuk untuk event yang ia buat.
+  - **Approve / Cancel booking**.
+  - Ketika approve/cancel, kuota tiket akan terupdate dan notifikasi dikirim ke user.
+- **Notifikasi Organizer**
+  - Mendapat notifikasi ketika:
+    - Ada booking baru untuk event miliknya,
+    - Booking dibatalkan, dsb.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-# E-Ticketing
->>>>>>> 3270167354b58c5f7ab4cdd2fcb2e9e88645a66d
+#### 4) Admin (`role = admin`)
+
+- **Dashboard Admin**
+  - Overview global sistem:
+    - Total users, total organizers, total events, total bookings.
+  - Chart analytics global (booking & revenue per bulan) dengan **Chart.js**.
+  - UI dashboard dengan desain **solid + glassmorphism** (modern, interaktif, animatif).
+
+- **User Management**
+  - Melihat daftar semua user (row/card style, dengan badge role & status).
+  - Menyetujui (`approve`) organizer baru (`status: pending → approved`).
+  - Menolak (`reject`) organizer (`status: pending → rejected`).
+  - Menghapus user (kecuali dirinya sendiri).
+
+- **Category Management**
+  - CRUD kategori event.
+  - Kategori digunakan sebagai filter & penandaan event di UI.
+
+- **Event Management**
+  - Melihat dan mengelola semua event (bukan hanya milik satu organizer).
+  - CRUD event.
+
+- **Booking Management**
+  - Melihat semua booking.
+  - Approve / cancel booking (global).
+
+- **Notifications**
+  - Mendapat notifikasi saat:
+    - Ada organizer baru yang mendaftar,
+    - Ada event baru yang dibuat organizer (sesuai implementasi notifikasi).
+
+- **Analytics API (JSON)**
+  - Endpoint JSON statistik global di `admin.analytics.json` untuk dipakai Chart.js di dashboard admin.
+
+---
+
+## 3. Struktur Role & Flow Bisnis
+
+### 3.1. Flow Registrasi & Approval Organizer
+
+1. User melakukan **register** di halaman `/register`.
+2. User memilih ingin menjadi:
+   - `registered_user` biasa, atau
+   - `organizer` (ingin menyelenggarakan event).
+3. Jika memilih **organizer**:
+   - `role = organizer`,
+   - `status = pending`.
+4. Admin masuk ke **Admin → User Management**:
+   - Jika approve → `status = approved`, organizer dapat membuat event.
+   - Jika reject → `status = rejected`, organizer tidak bisa membuat event.
+
+### 3.2. Flow Booking Tiket
+
+1. User login sebagai **registered_user**.
+2. Di **User Dashboard**, pilih event lalu klik **Lihat & Booking**.
+3. Pada halaman booking:
+   - Pilih **Ticket Type**,
+   - Isi quantity.
+4. Booking tersimpan dengan `status = pending`.
+5. Admin / Organizer melihat daftar booking:
+   - Klik **Approve**:
+     - `status` → `approved`,
+     - Kuota tiket berkurang,
+     - User mendapat notifikasi,
+     - E-ticket PDF bisa didownload user.
+   - Klik **Cancel**:
+     - `status` → `cancelled`,
+     - Jika sebelumnya `approved`, kuota dikembalikan,
+     - User mendapat notifikasi.
+
+---
+
+## 4. Instalasi & Setup
+
+### 4.1. Clone & Install Dependencies
+
+```bash
+# Clone repo (ganti URL dengan repository kamu)
+git clone https://github.com/username/event-ticket.git
+cd event-ticket
+
+# Install dependency PHP
+composer install
+
+# Install dependency frontend (NPM)
+npm install
