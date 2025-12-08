@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
@@ -41,6 +42,15 @@ class UserController extends Controller
         $user->status = 'approved';
         $user->save();
 
+        // Notifikasi ke organizer bahwa akunnya sudah disetujui
+        Notification::create([
+            'user_id' => $user->id,
+            'title'   => 'Akun Organizer Disetujui',
+            'message' => 'Pengajuan akun organizer kamu telah disetujui oleh admin. ' .
+                         'Sekarang kamu sudah bisa mengakses dashboard organizer.',
+            'status'  => 'unread',
+        ]);
+
         return redirect()->route('admin.users.index');
     }
 
@@ -63,6 +73,15 @@ class UserController extends Controller
 
         $user->status = 'rejected';
         $user->save();
+
+        // Notifikasi ke organizer bahwa pengajuan ditolak
+        Notification::create([
+            'user_id' => $user->id,
+            'title'   => 'Akun Organizer Ditolak',
+            'message' => 'Pengajuan akun organizer kamu ditolak oleh admin. ' .
+                         'Silakan hubungi admin bila membutuhkan informasi lebih lanjut.',
+            'status'  => 'unread',
+        ]);
 
         return redirect()->route('admin.users.index');
     }

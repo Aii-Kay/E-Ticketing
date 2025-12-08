@@ -1,3 +1,18 @@
+/* Third-party CSS libraries (via NPM) */
+@import "animate.css";
+@import "aos/dist/aos.css";
+@import "swiper/css";
+@import "flatpickr/dist/flatpickr.min.css";
+@import "sweetalert2/dist/sweetalert2.min.css";
+
+/* Tailwind (Breeze default) */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Tempat untuk custom CSS kamu sendiri (opsional) */
+/*
+body {
+    @apply bg-gray-50;
+}
+*/

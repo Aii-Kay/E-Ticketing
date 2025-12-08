@@ -1,5 +1,8 @@
 import defaultTheme from 'tailwindcss/defaultTheme';
 import forms from '@tailwindcss/forms';
+import typography from '@tailwindcss/typography';
+import daisyui from 'daisyui';
+import flowbite from 'flowbite/plugin';
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -7,6 +10,9 @@ export default {
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
+        './resources/js/**/*.js',
+        './resources/js/**/*.vue',
+        './node_modules/flowbite/**/*.js',
     ],
 
     theme: {
@@ -17,5 +23,10 @@ export default {
         },
     },
 
-    plugins: [forms],
+    plugins: [
+        forms,
+        typography,
+        daisyui,
+        flowbite,
+    ],
 };

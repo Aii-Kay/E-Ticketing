@@ -15,7 +15,6 @@ class TicketType extends Model
         'description',
         'price',
         'quota',
-        'image',
     ];
 
     // TicketType belongsTo Event

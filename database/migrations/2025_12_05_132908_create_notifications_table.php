@@ -1,0 +1,35 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    // Membuat tabel notifications
+    public function up(): void
+    {
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->id();
+
+            // Relasi ke users
+            $table->foreignId('user_id')
+                ->constrained()
+                ->onDelete('cascade');
+
+            $table->string('title');
+            $table->text('message');
+
+            // unread / read
+            $table->enum('status', ['unread', 'read'])->default('unread');
+
+            $table->timestamps();
+        });
+    }
+
+    // Drop tabel saat rollback
+    public function down(): void
+    {
+        Schema::dropIfExists('notifications');
+    }
+};

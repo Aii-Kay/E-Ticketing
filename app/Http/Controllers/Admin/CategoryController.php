@@ -31,7 +31,7 @@ class CategoryController extends Controller
         $data = $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'required|string',
-            'image'       => 'required|string|max:255',
+            'image'       => 'required|string|max:2444',
         ]);
 
         Category::create($data);
@@ -51,7 +51,6 @@ class CategoryController extends Controller
         $data = $request->validate([
             'name'        => 'required|string|max:255',
             'description' => 'required|string',
-            'image'       => 'required|string|max:255',
         ]);
 
         $category->update($data);

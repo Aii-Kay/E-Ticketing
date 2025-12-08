@@ -28,9 +28,17 @@
             @endisset
 
             <!-- Page Content -->
+            <!-- Page Content -->
             <main>
-                {{ $slot }}
+                @isset($slot)
+                    {{-- Dipakai kalau layout ini dipanggil sebagai component (x-app-layout) --}}
+                    {{ $slot }}
+                @else
+                    {{-- Dipakai kalau layout ini di-extend dengan @extends / @section --}}
+                    @yield('content')
+                @endisset
             </main>
+
         </div>
     </body>
 </html>

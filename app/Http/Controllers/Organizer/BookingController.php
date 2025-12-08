@@ -4,56 +4,88 @@ namespace App\Http\Controllers\Organizer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Notification;
 use App\Models\TicketType;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
-// Controller booking untuk organizer (hanya untuk event yang dia buat)
 class BookingController extends Controller
 {
-    // List booking untuk semua event milik organizer ini
-    public function index(): JsonResponse
+    /**
+     * Daftar semua booking untuk event yang dimiliki organizer (created_by = organizer_id).
+     */
+    public function index(): View
     {
-        $bookings = Booking::with(['user', 'event', 'ticketType'])
-            ->whereHas('event', function ($query) {
-                $query->where('created_by', Auth::id());
+        $organizerId = Auth::id();
+
+        $bookings = Booking::with(['event', 'ticketType', 'user'])
+            ->whereHas('event', function ($q) use ($organizerId) {
+                $q->where('created_by', $organizerId);
             })
             ->orderByDesc('created_at')
             ->get();
 
-        return response()->json($bookings);
+        return view('organizer.bookings.index', compact('bookings'));
     }
 
-    // Detail booking untuk event milik organizer
-    public function show(Booking $booking): JsonResponse
+    /**
+     * Detail satu booking (JSON) – tetapi dibatasi hanya
+     * booking untuk event milik organizer.
+     */
+    public function show(Booking $booking)
     {
-        if ($booking->event->created_by !== Auth::id()) {
-            abort(403, 'You can only view bookings for your own events.');
-        }
+        $booking->load(['event', 'ticketType', 'user']);
 
-        $booking->load(['user', 'event', 'ticketType']);
+        // Keamanan: hanya boleh lihat booking utk event yg dia miliki
+        if (!$booking->event || $booking->event->created_by !== Auth::id()) {
+            abort(403, 'You are not allowed to view this booking.');
+        }
 
         return response()->json($booking);
     }
 
-    // Menyetujui booking untuk event milik organizer ini
+    /**
+     * Organizer menyetujui booking:
+     * - hanya untuk event miliknya
+     * - ubah status -> approved
+     * - kurangi quota ticket_type
+     * - kirim notifikasi ke user.
+     */
     public function approve(Booking $booking): RedirectResponse
     {
-        if ($booking->event->created_by !== Auth::id()) {
-            abort(403, 'You can only approve bookings for your own events.');
+        $booking->load(['event', 'ticketType', 'user']);
+
+        // Keamanan: booking harus milik event yang dibuat organizer ini
+        if (!$booking->event || $booking->event->created_by !== Auth::id()) {
+            abort(403, 'You are not allowed to approve this booking.');
         }
 
-        if ($booking->status !== 'pending') {
-            abort(422, 'Only pending bookings can be approved.');
+        if ($booking->status === 'cancelled') {
+            return redirect()
+                ->back()
+                ->with('error', 'Booking yang sudah dibatalkan tidak bisa disetujui.');
+        }
+
+        if ($booking->status === 'approved') {
+            return redirect()
+                ->back()
+                ->with('status', 'Booking ini sudah dalam status approved.');
+        }
+
+        // Cek quota
+        if ($booking->ticketType->quota < $booking->quantity) {
+            return redirect()
+                ->back()
+                ->with('error', 'Quota tiket tidak mencukupi untuk menyetujui booking ini.');
         }
 
         DB::transaction(function () use ($booking) {
             $ticketType = TicketType::lockForUpdate()->findOrFail($booking->ticket_type_id);
 
             if ($ticketType->quota < $booking->quantity) {
-                abort(422, 'Not enough ticket quota.');
+                throw new \RuntimeException('Quota tidak cukup.');
             }
 
             $ticketType->quota -= $booking->quantity;
@@ -63,18 +95,43 @@ class BookingController extends Controller
             $booking->save();
         });
 
-        return redirect()->back();
+        // Notifikasi ke user
+        Notification::create([
+            'user_id' => $booking->user_id,
+            'title'   => 'Booking Disetujui (Organizer)',
+            'message' => sprintf(
+                'Booking #%d untuk event "%s" dengan tiket "%s" telah disetujui oleh organizer.',
+                $booking->id,
+                $booking->event->name ?? '-',
+                $booking->ticketType->name ?? '-'
+            ),
+            'status'  => 'unread',
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('status', 'Booking berhasil disetujui dan quota tiket telah dikurangi.');
     }
 
-    // Membatalkan booking untuk event milik organizer
+    /**
+     * Organizer membatalkan booking:
+     * - hanya untuk event miliknya
+     * - ubah status -> cancelled
+     * - kalau sebelumnya approved, quota ticket_type dikembalikan
+     * - kirim notifikasi ke user.
+     */
     public function cancel(Booking $booking): RedirectResponse
     {
-        if ($booking->event->created_by !== Auth::id()) {
-            abort(403, 'You can only cancel bookings for your own events.');
+        $booking->load(['event', 'ticketType', 'user']);
+
+        if (!$booking->event || $booking->event->created_by !== Auth::id()) {
+            abort(403, 'You are not allowed to cancel this booking.');
         }
 
         if ($booking->status === 'cancelled') {
-            return redirect()->back();
+            return redirect()
+                ->back()
+                ->with('status', 'Booking ini sudah berstatus cancelled.');
         }
 
         DB::transaction(function () use ($booking) {
@@ -88,6 +145,20 @@ class BookingController extends Controller
             $booking->save();
         });
 
-        return redirect()->back();
+        // Notifikasi ke user
+        Notification::create([
+            'user_id' => $booking->user_id,
+            'title'   => 'Booking Dibatalkan (Organizer)',
+            'message' => sprintf(
+                'Booking #%d untuk event "%s" telah dibatalkan oleh organizer.',
+                $booking->id,
+                $booking->event->name ?? '-'
+            ),
+            'status'  => 'unread',
+        ]);
+
+        return redirect()
+            ->back()
+            ->with('status', 'Booking berhasil dibatalkan.');
     }
 }

@@ -4,12 +4,10 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
 
-/**
- * Middleware pembatas role admin.
- */
+// Middleware untuk membatasi akses hanya untuk admin
 class RoleAdmin
 {
     public function handle(Request $request, Closure $next): Response
